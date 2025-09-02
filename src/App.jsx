@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ProjectSidebar from "./Components/ProjectSidebar";
 import NewProject from "./Components/NewProject";
 import NoProjectSelected from "./Components/NoProjectSelected";
@@ -6,14 +6,42 @@ import SelectedProject from "./Components/SelectedProject";
 import ToggleButton from "./Components/toggleButton";
 
 function App() {
-  const [projectsState, setProjectsState] = useState({
-    selectedProjectId: undefined,
-    projects: [],
-    tasks: [],
+  const [projectsState, setProjectsState] = useState(() => {
+    const saved = localStorage.getItem("projectsState");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (
+        parsed.selectedProjectId &&
+        !parsed.projects.some((p) => p.id === parsed.selectedProjectId)
+      ) {
+        parsed.selectedProjectId = undefined;
+      }
+      return parsed;
+    }
+    return { selectedProjectId: undefined, projects: [], tasks: [] };
   });
 
-  const [isDark, setIsDark] = useState(false);
-  const [sortOption, setSortOption] = useState("original"); 
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem("isDark");
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  const [sortOption, setSortOption] = useState(() => {
+    const saved = localStorage.getItem("sortOption");
+    return saved || "original";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("projectsState", JSON.stringify(projectsState));
+  }, [projectsState]);
+
+  useEffect(() => {
+    localStorage.setItem("isDark", JSON.stringify(isDark));
+  }, [isDark]);
+
+  useEffect(() => {
+    localStorage.setItem("sortOption", sortOption);
+  }, [sortOption]);
 
   function handleToggleTheme() {
     setIsDark((prev) => !prev);
@@ -89,6 +117,16 @@ function App() {
       };
     });
   }
+
+  function handleEditProject(updatedProject) {
+    setProjectsState((prevState) => ({
+      ...prevState,
+      projects: prevState.projects.map((project) =>
+        project.id === updatedProject.id ? { ...project, ...updatedProject } : project
+      ),
+    }));
+  }
+
   function getSortedProjects(projects) {
     if (sortOption === "time") {
       return [...projects].sort((a, b) => {
@@ -97,12 +135,14 @@ function App() {
         return new Date(a.dueDate) - new Date(b.dueDate);
       });
     }
+
     if (sortOption === "priority") {
-      const order = { High: 1, Moderate: 2, Low: 3 };
+      const order = { high: 1, moderate: 2, low: 3 };
       return [...projects].sort((a, b) => {
         return (order[a.priority] || 4) - (order[b.priority] || 4);
       });
     }
+
     return projects;
   }
 
@@ -136,6 +176,7 @@ function App() {
         onDelete={handleDeleteProject}
         onAddTask={handleAddTask}
         onDeleteTask={handleDeleteTask}
+        onEdit={handleEditProject}
         tasks={projectsState.tasks.filter(
           (task) => task.projectID === projectsState.selectedProjectId
         )}
@@ -159,11 +200,11 @@ function App() {
         <div className="flex flex-1 gap-8">
           <ProjectSidebar
             onStartAddProject={handleStartAddProject}
-            projects={sortedProjects}   
+            projects={sortedProjects}
             onSelectProject={handleSelectProject}
             selectedProjectId={projectsState.selectedProjectId}
             isDark={isDark}
-            sortOption={sortOption}      
+            sortOption={sortOption}
             setSortOption={setSortOption}
           />
           {content}
