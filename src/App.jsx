@@ -13,7 +13,7 @@ function App() {
   });
 
   const [isDark, setIsDark] = useState(false);
-  const [sortOption, setSortOption] = useState("original"); // NEW: sorting option
+  const [sortOption, setSortOption] = useState("original"); 
 
   function handleToggleTheme() {
     setIsDark((prev) => !prev);
