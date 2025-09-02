@@ -1,4 +1,4 @@
-import noProjectImage from ".././assets/noProjectImage.png"
+import noProjectImage from ".././assets/noProjectImage.webp"
 import Button from './Button';
 export default function NoProjectSelected({onStartAddProject}) {
   return (
