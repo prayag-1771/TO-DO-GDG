@@ -9,6 +9,7 @@ export default function ProjectsSidebar({
   onStartAddProject,
   projects,
   onSelectProject,
+  onToggleProjectCompletion,
   selectedProjectId,
   isDark,
   sortOption,
@@ -26,6 +27,7 @@ export default function ProjectsSidebar({
     duration: 0.5,
     ease: "power3.out",
   });
+
   gsap.to(arrowRef.current, {
     rotate: isOpen ? 0 : 180,
     duration: 0.3,
@@ -33,9 +35,8 @@ export default function ProjectsSidebar({
   });
 
   const handleSortChange = (e) => {
-    const state = Flip.getState(listRef.current.children); 
-
-    setSortOption(e.target.value); 
+    const state = Flip.getState(listRef.current.children);
+    setSortOption(e.target.value);
 
     requestAnimationFrame(() => {
       Flip.from(state, {
@@ -87,25 +88,18 @@ export default function ProjectsSidebar({
 
         <ul className="mt-4" ref={listRef}>
           {projects.map((project) => {
-            const dueDatePassed =
-              project.dueDate && new Date(project.dueDate) < today;
-
-            let CssClass =
-              "w-full text-left px-2 py-1 rounded-sm my-1 hover:text-stone-200 hover:bg-stone-800";
-
-            if (project.id === selectedProjectId) {
-              CssClass += " bg-stone-800 font-bold";
-            }
-
-            CssClass += dueDatePassed ? " text-red-200" : " text-stone-400";
+            const dueDatePassed = project.dueDate && new Date(project.dueDate) < today;
 
             return (
-              <li key={project.id}>
+              <li key={project.id} className="flex items-center my-1">
                 <button
                   onClick={() => onSelectProject(project.id)}
-                  className={CssClass}
+                  className={`flex-1 text-left px-2 py-1 rounded-sm
+                    ${project.completed ? "text-green-500" : dueDatePassed ? "text-red-400" : "text-stone-400"}
+                    ${project.id === selectedProjectId ? "bg-stone-800 font-bold" : ""}
+                  `}
                 >
-                  {dueDatePassed ? `${project.title} ⚠️` : project.title}
+                  {project.title}
                 </button>
               </li>
             );

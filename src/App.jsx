@@ -10,10 +10,7 @@ function App() {
     const saved = localStorage.getItem("projectsState");
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (
-        parsed.selectedProjectId &&
-        !parsed.projects.some((p) => p.id === parsed.selectedProjectId)
-      ) {
+      if (parsed.selectedProjectId && !parsed.projects.some((p) => p.id === parsed.selectedProjectId)) {
         parsed.selectedProjectId = undefined;
       }
       return parsed;
@@ -45,62 +42,76 @@ function App() {
     localStorage.setItem("sortOption", sortOption);
   }, [sortOption]);
 
-  function handleToggleTheme() { setIsDark((prev) => !prev); }
+  function handleToggleTheme() { setIsDark(prev => !prev); }
 
   function handleAddTask(text) {
-    setProjectsState((prevState) => {
+    setProjectsState(prev => {
       const taskID = Math.random();
-      const newTask = { text, projectID: prevState.selectedProjectId, id: taskID };
-      return { ...prevState, tasks: [newTask, ...prevState.tasks] };
+      const newTask = { text, projectID: prev.selectedProjectId, id: taskID, completed: false };
+      return { ...prev, tasks: [newTask, ...prev.tasks] };
     });
   }
 
+  function handleToggleTaskCompletion(taskId) {
+    setProjectsState(prev => ({
+      ...prev,
+      tasks: prev.tasks.map(task =>
+        task.id === taskId ? { ...task, completed: !task.completed } : task
+      )
+    }));
+  }
+
   function handleDeleteTask(id) {
-    setProjectsState((prevState) => ({
-      ...prevState,
-      tasks: prevState.tasks.filter((task) => task.id !== id),
+    setProjectsState(prev => ({
+      ...prev,
+      tasks: prev.tasks.filter(task => task.id !== id)
     }));
   }
 
   function handleSelectProject(id) {
-    setProjectsState((prevState) => ({ ...prevState, selectedProjectId: id }));
+    setProjectsState(prev => ({ ...prev, selectedProjectId: id }));
   }
 
   function handleDeleteProject() {
-    setProjectsState((prevState) => ({
-      ...prevState,
+    setProjectsState(prev => ({
+      ...prev,
       selectedProjectId: undefined,
-      projects: prevState.projects.filter(
-        (project) => project.id !== prevState.selectedProjectId
-      ),
-      tasks: prevState.tasks.filter(
-        (task) => task.projectID !== prevState.selectedProjectId
-      ),
+      projects: prev.projects.filter(project => project.id !== prev.selectedProjectId),
+      tasks: prev.tasks.filter(task => task.projectID !== prev.selectedProjectId)
     }));
   }
 
   function handleCancelAddProject() {
-    setProjectsState((prevState) => ({ ...prevState, selectedProjectId: undefined }));
+    setProjectsState(prev => ({ ...prev, selectedProjectId: undefined }));
   }
 
   function handleStartAddProject() {
-    setProjectsState((prevState) => ({ ...prevState, selectedProjectId: null }));
+    setProjectsState(prev => ({ ...prev, selectedProjectId: null }));
   }
 
   function handleAddProject(projectData) {
-    setProjectsState((prevState) => {
+    setProjectsState(prev => {
       const ProjectID = Math.random();
-      const newProject = { ...projectData, id: ProjectID };
-      return { ...prevState, selectedProjectId: undefined, projects: [...prevState.projects, newProject] };
+      const newProject = { ...projectData, id: ProjectID, completed: false };
+      return { ...prev, selectedProjectId: undefined, projects: [...prev.projects, newProject] };
     });
   }
 
   function handleEditProject(updatedProject) {
-    setProjectsState((prevState) => ({
-      ...prevState,
-      projects: prevState.projects.map((project) =>
+    setProjectsState(prev => ({
+      ...prev,
+      projects: prev.projects.map(project =>
         project.id === updatedProject.id ? { ...project, ...updatedProject } : project
-      ),
+      )
+    }));
+  }
+
+  function handleToggleProjectCompletion(projectId) {
+    setProjectsState(prev => ({
+      ...prev,
+      projects: prev.projects.map(project =>
+        project.id === projectId ? { ...project, completed: !project.completed } : project
+      )
     }));
   }
 
@@ -120,9 +131,7 @@ function App() {
   }
 
   const sortedProjects = getSortedProjects(projectsState.projects);
-  const selectedProject = projectsState.projects.find(
-    (project) => project.id === projectsState.selectedProjectId
-  );
+  const selectedProject = projectsState.projects.find(project => project.id === projectsState.selectedProjectId);
 
   let content = null;
   if (projectsState.selectedProjectId === null) {
@@ -137,9 +146,9 @@ function App() {
         onAddTask={handleAddTask}
         onDeleteTask={handleDeleteTask}
         onEdit={handleEditProject}
-        tasks={projectsState.tasks.filter(
-          (task) => task.projectID === projectsState.selectedProjectId
-        )}
+        onComplete={handleToggleProjectCompletion}
+        tasks={projectsState.tasks.filter(task => task.projectID === projectsState.selectedProjectId)}
+        onToggleTaskCompletion={handleToggleTaskCompletion}
         isDark={isDark}
         sidebarOpen={sidebarOpen}
       />
@@ -151,9 +160,7 @@ function App() {
       <div className="fixed top-4 right-4 mt-6">
         <ToggleButton onChange={handleToggleTheme} checked={isDark} />
       </div>
-      <main
-        className={`h-screen flex flex-col ${isDark ? "bg-gray-900 text-white" : "bg-stone-100 text-black"}`}
-      >
+      <main className={`h-screen flex flex-col ${isDark ? "bg-gray-900 text-white" : "bg-stone-100 text-black"}`}>
         <div className={isDark ? "bg-gray-800 h-8" : "bg-stone-200 h-8"}></div>
         <div className="flex flex-1 gap-8">
           <ProjectSidebar
@@ -166,6 +173,7 @@ function App() {
             setSortOption={setSortOption}
             isOpen={sidebarOpen}
             setIsOpen={setSidebarOpen}
+            onToggleProjectCompletion={handleToggleProjectCompletion}
           />
           {content}
         </div>
