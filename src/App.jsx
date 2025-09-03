@@ -31,6 +31,8 @@ function App() {
     return saved || "original";
   });
 
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
   useEffect(() => {
     localStorage.setItem("projectsState", JSON.stringify(projectsState));
   }, [projectsState]);
@@ -43,22 +45,13 @@ function App() {
     localStorage.setItem("sortOption", sortOption);
   }, [sortOption]);
 
-  function handleToggleTheme() {
-    setIsDark((prev) => !prev);
-  }
+  function handleToggleTheme() { setIsDark((prev) => !prev); }
 
   function handleAddTask(text) {
     setProjectsState((prevState) => {
       const taskID = Math.random();
-      const newTask = {
-        text,
-        projectID: prevState.selectedProjectId,
-        id: taskID,
-      };
-      return {
-        ...prevState,
-        tasks: [newTask, ...prevState.tasks],
-      };
+      const newTask = { text, projectID: prevState.selectedProjectId, id: taskID };
+      return { ...prevState, tasks: [newTask, ...prevState.tasks] };
     });
   }
 
@@ -70,10 +63,7 @@ function App() {
   }
 
   function handleSelectProject(id) {
-    setProjectsState((prevState) => ({
-      ...prevState,
-      selectedProjectId: id,
-    }));
+    setProjectsState((prevState) => ({ ...prevState, selectedProjectId: id }));
   }
 
   function handleDeleteProject() {
@@ -90,31 +80,18 @@ function App() {
   }
 
   function handleCancelAddProject() {
-    setProjectsState((prevState) => ({
-      ...prevState,
-      selectedProjectId: undefined,
-    }));
+    setProjectsState((prevState) => ({ ...prevState, selectedProjectId: undefined }));
   }
 
   function handleStartAddProject() {
-    setProjectsState((prevState) => ({
-      ...prevState,
-      selectedProjectId: null,
-    }));
+    setProjectsState((prevState) => ({ ...prevState, selectedProjectId: null }));
   }
 
   function handleAddProject(projectData) {
     setProjectsState((prevState) => {
       const ProjectID = Math.random();
-      const newProject = {
-        ...projectData,
-        id: ProjectID,
-      };
-      return {
-        ...prevState,
-        selectedProjectId: undefined,
-        projects: [...prevState.projects, newProject],
-      };
+      const newProject = { ...projectData, id: ProjectID };
+      return { ...prevState, selectedProjectId: undefined, projects: [...prevState.projects, newProject] };
     });
   }
 
@@ -135,40 +112,23 @@ function App() {
         return new Date(a.dueDate) - new Date(b.dueDate);
       });
     }
-
     if (sortOption === "priority") {
       const order = { high: 1, moderate: 2, low: 3 };
-      return [...projects].sort((a, b) => {
-        return (order[a.priority] || 4) - (order[b.priority] || 4);
-      });
+      return [...projects].sort((a, b) => (order[a.priority] || 4) - (order[b.priority] || 4));
     }
-
     return projects;
   }
 
   const sortedProjects = getSortedProjects(projectsState.projects);
-
   const selectedProject = projectsState.projects.find(
     (project) => project.id === projectsState.selectedProjectId
   );
 
   let content = null;
-
   if (projectsState.selectedProjectId === null) {
-    content = (
-      <NewProject
-        onAdd={handleAddProject}
-        onCancel={handleCancelAddProject}
-        isDark={isDark}
-      />
-    );
+    content = <NewProject onAdd={handleAddProject} onCancel={handleCancelAddProject} isDark={isDark} sidebarOpen={sidebarOpen} />;
   } else if (projectsState.selectedProjectId === undefined) {
-    content = (
-      <NoProjectSelected
-        onStartAddProject={handleStartAddProject}
-        isDark={isDark}
-      />
-    );
+    content = <NoProjectSelected onStartAddProject={handleStartAddProject} isDark={isDark} sidebarOpen={sidebarOpen} />;
   } else if (selectedProject) {
     content = (
       <SelectedProject
@@ -181,6 +141,7 @@ function App() {
           (task) => task.projectID === projectsState.selectedProjectId
         )}
         isDark={isDark}
+        sidebarOpen={sidebarOpen}
       />
     );
   }
@@ -191,12 +152,9 @@ function App() {
         <ToggleButton onChange={handleToggleTheme} checked={isDark} />
       </div>
       <main
-        className={`h-screen flex flex-col ${
-          isDark ? "bg-gray-900 text-white" : "bg-stone-100 text-black"
-        }`}
+        className={`h-screen flex flex-col ${isDark ? "bg-gray-900 text-white" : "bg-stone-100 text-black"}`}
       >
         <div className={isDark ? "bg-gray-800 h-8" : "bg-stone-200 h-8"}></div>
-
         <div className="flex flex-1 gap-8">
           <ProjectSidebar
             onStartAddProject={handleStartAddProject}
@@ -206,6 +164,8 @@ function App() {
             isDark={isDark}
             sortOption={sortOption}
             setSortOption={setSortOption}
+            isOpen={sidebarOpen}
+            setIsOpen={setSidebarOpen}
           />
           {content}
         </div>

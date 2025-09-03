@@ -1,13 +1,29 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import Input from "./Input";
 import Modal from "./Model";
+import { gsap } from "gsap";
 
-export default function NewProject({ onAdd, onCancel, isDark }) {
+export default function NewProject({ onAdd, onCancel, isDark, sidebarOpen }) {
   const modal = useRef();
   const title = useRef();
   const description = useRef();
   const dueDate = useRef();
   const priority = useRef();
+  const containerRef = useRef();
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (containerRef.current && !isFirstRender.current) {
+      gsap.to(containerRef.current, {
+        x: sidebarOpen ? 288 : 0, 
+        duration: 0.5,
+        ease: "power3.out",
+      });
+    } else if (containerRef.current) {
+      gsap.set(containerRef.current, { x: sidebarOpen ? 288 : 0 });
+      isFirstRender.current = false;
+    }
+  }, [sidebarOpen]);
 
   function handleSave() {
     const enteredTitle = title.current.value;
@@ -29,7 +45,7 @@ export default function NewProject({ onAdd, onCancel, isDark }) {
       title: enteredTitle,
       description: enteredDescription,
       dueDate: enteredDueDate,
-      priority: enteredPriority, 
+      priority: enteredPriority,
     });
   }
 
@@ -41,7 +57,7 @@ export default function NewProject({ onAdd, onCancel, isDark }) {
         <p className="text-stone-600 mb-2">Please provide all valid inputs.</p>
       </Modal>
 
-      <div className="w-[35rem] mt-16">
+      <div ref={containerRef} className="w-[35rem] mt-16">
         <div className="flex items-center justify-end gap-4 my-4">
           <button
             className={

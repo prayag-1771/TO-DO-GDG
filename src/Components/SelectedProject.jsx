@@ -1,4 +1,5 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { gsap } from "gsap";
 import Tasks from "./Task.jsx";
 import Input from "./Input.jsx";
 
@@ -10,6 +11,7 @@ export default function SelectedProject({
   onEdit,
   tasks,
   isDark,
+  sidebarOpen,
 }) {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -17,12 +19,30 @@ export default function SelectedProject({
   const descriptionRef = useRef();
   const dueDateRef = useRef();
   const priorityRef = useRef();
+  const containerRef = useRef();
+  const isFirstRender = useRef(true);
 
   const formattedDate = new Date(project.dueDate).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
   });
+
+  const today = new Date();
+  const isPastDue = new Date(project.dueDate) < today;
+
+  useEffect(() => {
+    if (containerRef.current && !isFirstRender.current) {
+      gsap.to(containerRef.current, {
+        x: sidebarOpen ? 288 : 0, 
+        duration: 0.5,
+        ease: "power3.out",
+      });
+    } else if (containerRef.current) {
+      gsap.set(containerRef.current, { x: sidebarOpen ? 288 : 0 }); 
+      isFirstRender.current = false;
+    }
+  }, [sidebarOpen]);
 
   function handleSave() {
     onEdit({
@@ -40,7 +60,7 @@ export default function SelectedProject({
   }
 
   return (
-    <div className="w-[35rem] mt-16">
+    <div ref={containerRef} className="w-[35rem] mt-16">
       <header className="pb-4 mb-4 border-b-2 border-stone-300">
         {isEditing ? (
           <input
@@ -149,7 +169,7 @@ export default function SelectedProject({
           </>
         ) : (
           <>
-            <p className={isDark ? "mb-1 text-stone-300" : "mb-1 text-stone-400"}>
+            <p className={`mb-1 ${isPastDue ? "text-red-400" : isDark ? "text-stone-300" : "text-stone-400"}`}>
               Due: {formattedDate}
             </p>
             <p className={`mb-4 font-semibold ${isDark ? "text-stone-200" : "text-stone-600"}`}>
