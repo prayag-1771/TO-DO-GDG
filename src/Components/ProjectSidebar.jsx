@@ -99,7 +99,7 @@ export default function ProjectsSidebar({
                     ${project.id === selectedProjectId ? "bg-stone-800 font-bold" : ""}
                   `}
                 >
-                  {project.title}
+                  {dueDatePassed && !project.completed ? `${project.title} ⚠️` : project.title}
                 </button>
               </li>
             );
